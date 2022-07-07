@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zappar </title>
+
+<body>
+    <div>
+        <input type="file" onChange="onUpload()" id="uploaded" />
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+
+        function onUpload() {
+            trainImage();
+        }
+
+        async function trainImage() {
+            let photo = document.getElementById("uploaded").files[0];
+            var formData = new FormData();
+            formData.append('file', photo);
+            axios.post("http://localhost:4001/train_target", formData, {})
+                .then(res => {
+                    console.log(res);
+                    //download
+                    // const url = window.URL
+                    //     .createObjectURL(new Blob([res.data]));
+                    // const link = document.createElement('a');
+                    // link.href = url;
+                    // link.setAttribute('download', 'image.zpt');
+                    // document.body.appendChild(link);
+                    // link.click();
+                    // document.body.removeChild(link);
+
+                }).catch((err) => {
+                    console.log(err)
+                });
+        }
+    </script>
+</body>
+
+</html>  

@@ -1,0 +1,103 @@
+<html>
+
+<head>
+    <title>Capture picture from your webcam</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.js"></script>
+</head>
+
+<body>
+    <div id="camera" style="height:auto;width:auto; text-align:left;"></div>
+
+    <input type="button" value="Take a Snap" id="btPic" onclick="takeSnapShot()" />
+</body>
+
+<script>
+    
+    /**
+ * Convert a base64 string in a Blob according to the data and contentType.
+ * 
+ * @param b64Data {String} Pure base64 string without contentType
+ * @param contentType {String} the content type of the file i.e (image/jpeg - image/png - text/plain)
+ * @param sliceSize {Int} SliceSize to process the byteCharacters
+ * @see http://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
+ * @return Blob
+ */
+    function b64toBlob(b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+        var blob = new Blob(byteArrays, { type: contentType });
+        return blob;
+    }
+    // CAMERA SETTINGS.
+    Webcam.set({
+        width: 220,
+        height: 190,
+        image_format: 'jpeg',
+        jpeg_quality: 100
+    });
+    Webcam.attach('#camera');
+
+    // SHOW THE SNAPSHOT.
+    takeSnapShot = function () {
+        Webcam.snap(function (data_uri) {
+            var ImageURL = data_uri;
+            // Split the base64 string in data and contentType
+            var block = ImageURL.split(";");
+            // Get the content type of the image
+            var contentType = block[0].split(":")[1];// In this case "image/gif"
+            // get the real base64 content of the file
+            var realData = block[1].split(",")[1];// In this case "R0lGODlhPQBEAPeoAJosM...."
+
+            // Convert it to a blob to upload
+            var blob = b64toBlob(realData, contentType);
+
+            // Create a FormData and append the file with "image" as parameter name
+            var formData = new FormData();
+            formData.append("file", blob);
+
+
+            async function trainImage() {
+
+                axios.post("http://localhost:4001/train_target", formData, {})
+                    .then(res => {
+                        console.log(res.data);
+                        //download
+                        // const url = window.URL
+                        //     .createObjectURL(new Blob([res.data]));
+                        // const link = document.createElement('a');
+                        // link.href = url;
+                        // link.setAttribute('download', 'image.zpt');
+                        // document.body.appendChild(link);
+                        // link.click();
+                        // document.body.removeChild(link);
+
+                    }).catch((err) => {
+                        console.log(err)
+                    });
+            }
+
+            trainImage();
+
+        });
+    }
+</script>
+
+</html>
